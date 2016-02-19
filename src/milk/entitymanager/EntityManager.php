@@ -98,8 +98,7 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function onEnable(){
-        @mkdir($this->getDataFolder());
-        $this->saveResource("config.yml", false);
+        $this->saveDefaultConfig();
         if($this->getConfig()->exists("spawn")){
             $this->saveResource("config.yml", true);
             $this->reloadConfig();
