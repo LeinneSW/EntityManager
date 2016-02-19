@@ -116,15 +116,14 @@ class EntityManager extends PluginBase implements Listener{
             unset(self::$data["entity"]["explode"]);
         }
 
-        /*self::$drops = [
-            "Zombie" => [
-                #[Item id, Item meta, Count]
-                [Item::FEATHER, 0, "1,10"]
-            ],
-            "Creeper" => [
-                [Item::FEATHER, 0, "1,10"]
-            ],
-        ];*/
+        /*Drops Example
+        Zombie:
+          #id  meta count
+          [288, 0, "1,10"],
+          [392, 0, "1,10"]
+        PigZombie:
+          [266, 0, "0,8"]
+        */
 
         if($this->getData("autospawn.turn-on", true)){
             $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoSpawnTask($this), $this->getData("autospawn.tick", 100));
