@@ -14,7 +14,7 @@ class AutoSpawnTask extends Task{
         $owner = Server::getInstance()->getPluginManager()->getPlugin("EntityManager");
         $rand = explode("/", $owner->getData("autospawn.rand", "1/4"));
         foreach(Server::getInstance()->getOnlinePlayers() as $player){
-            if(mt_rand(...$rand) > $rand[0]){
+            if(mt_rand(1, $rand[1]) > $rand[0]){
                 continue;
             }
 
