@@ -31,13 +31,13 @@ class EntityManager extends PluginBase implements Listener{
     public static $spawner;
 
     public static function clear(array $type = [BaseEntity::class], $level = null){
-        if($level == null){
+        if($level === null){
             $level = Server::getInstance()->getDefaultLevel();
         }
 
         if(!($level instanceof Level)){
             $level = Server::getInstance()->getLevelByName($level);
-            if($level == null){
+            if($level === null){
                 return;
             }
         }
@@ -62,7 +62,7 @@ class EntityManager extends PluginBase implements Listener{
         $list = EntityManager::$drops[$name] ?? [];
 
         foreach($list as $key => $data){
-            if(($data[0] ?? 0) == $item->getId() && ($data[1] ?? 0) == $item->getDamage()){
+            if(($data[0] ?? 0) === $item->getId() && ($data[1] ?? 0) === $item->getDamage()){
                 $data[2] = "$minCount,$maxCount";
 
                 EntityManager::$drops[$name][$key] = $data;
@@ -85,7 +85,7 @@ class EntityManager extends PluginBase implements Listener{
         $list = EntityManager::$drops[$name] ?? [];
 
         foreach($list as $key => $data){
-            if(($data[0] ?? 0) == $item->getId() && ($data[1] ?? 0) == $item->getDamage()){
+            if(($data[0] ?? 0) === $item->getId() && ($data[1] ?? 0) === $item->getDamage()){
                 unset(EntityManager::$drops[$name][$key]);
                 return;
             }
@@ -279,13 +279,13 @@ class EntityManager extends PluginBase implements Listener{
                     $pos = $i->getPosition();
                 }
 
-                if($pos == null){
+                if($pos === null){
                     $output .= "usage: /$label create <id/name> (x) (y) (z) (level)";
                     break;
                 }
 
                 $entity = PureEntities::create($sub[0], $pos);
-                if($entity == null){
+                if($entity === null){
                     $output .= "Entity's name is incorrect";
                     break;
                 }

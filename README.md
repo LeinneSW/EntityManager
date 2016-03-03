@@ -21,8 +21,6 @@ autoclear:
   tick: 6000 #Entity remove tick(20 = 1second)
   entities: [Projectile, DroppedItem] #list of entities to be removed
 ```
-  * drops.yml
-    * TODO
   
 ### Commands(명령어)
   * /entitymanager
