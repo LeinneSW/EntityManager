@@ -3,38 +3,15 @@
 namespace milk\entitymanager;
 
 use milk\entitymanager\task\AutoClearTask;
-use milk\entitymanager\task\AutoSpawnTask;
-use milk\pureentities\entity\animal\walking\Chicken;
-use milk\pureentities\entity\animal\walking\Cow;
-use milk\pureentities\entity\animal\walking\Mooshroom;
-use milk\pureentities\entity\animal\walking\Ocelot;
-use milk\pureentities\entity\animal\walking\Pig;
-use milk\pureentities\entity\animal\walking\Rabbit;
-use milk\pureentities\entity\animal\walking\Sheep;
 use milk\pureentities\entity\BaseEntity;
-use milk\pureentities\entity\monster\flying\Blaze;
-use milk\pureentities\entity\monster\flying\Ghast;
-use milk\pureentities\entity\monster\walking\CaveSpider;
-use milk\pureentities\entity\monster\walking\Creeper;
-use milk\pureentities\entity\monster\walking\Enderman;
-use milk\pureentities\entity\monster\walking\IronGolem;
-use milk\pureentities\entity\monster\walking\PigZombie;
-use milk\pureentities\entity\monster\walking\Silverfish;
-use milk\pureentities\entity\monster\walking\Skeleton;
-use milk\pureentities\entity\monster\walking\SnowGolem;
-use milk\pureentities\entity\monster\walking\Spider;
-use milk\pureentities\entity\monster\walking\Wolf;
-use milk\pureentities\entity\monster\walking\Zombie;
-use milk\pureentities\entity\monster\walking\ZombieVillager;
-use milk\pureentities\entity\projectile\FireBall;
 use milk\pureentities\PureEntities;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Living;
 use pocketmine\entity\Projectile;
 use pocketmine\event\entity\EntityDeathEvent;
+use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\event\Listener;
 use pocketmine\item\Item;
@@ -53,48 +30,73 @@ class EntityManager extends PluginBase implements Listener{
     public static $drops;
     public static $spawner;
 
-    public function __construct(){
-        $classes = [
-            Blaze::class,
-            CaveSpider::class,
-            Chicken::class,
-            Cow::class,
-            Creeper::class,
-            Enderman::class,
-            Ghast::class,
-            IronGolem::class,
-            //MagmaCube::class,
-            Mooshroom::class,
-            Ocelot::class,
-            Pig::class,
-            PigZombie::class,
-            Rabbit::class,
-            Sheep::class,
-            Silverfish::class,
-            Skeleton::class,
-            //Slime::class,
-            SnowGolem::class,
-            Spider::class,
-            Wolf::class,
-            Zombie::class,
-            ZombieVillager::class,
-            FireBall::class
-        ];
-        foreach($classes as $name){
-            Entity::registerEntity($name);
-            if(
-                $name == IronGolem::class
-                || $name == FireBall::class
-                || $name == SnowGolem::class
-                || $name == ZombieVillager::class
-            ){
-                continue;
-            }
-            $item = Item::get(Item::SPAWN_EGG, $name::NETWORK_ID);
-            if(!Item::isCreativeItem($item)){
-                Item::addCreativeItem($item);
+    public static function clear(array $type = [BaseEntity::class], $level = null){
+        if($level == null){
+            $level = Server::getInstance()->getDefaultLevel();
+        }
+
+        if(!($level instanceof Level)){
+            $level = Server::getInstance()->getLevelByName($level);
+            if($level == null){
+                return;
             }
         }
+
+        foreach($level->getEntities() as $id => $ent){
+            foreach($type as $t){
+                if(is_a($ent, $t, true)){
+                    $ent->close();
+                    continue;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param Item $item
+     * @param int $minCount
+     * @param int $maxCount
+     */
+    public static function addEntityDropItem($name, Item $item, $minCount, $maxCount){
+        $list = EntityManager::$drops[$name] ?? [];
+
+        foreach($list as $key => $data){
+            if(($data[0] ?? 0) == $item->getId() && ($data[1] ?? 0) == $item->getDamage()){
+                $data[2] = "$minCount,$maxCount";
+
+                EntityManager::$drops[$name][$key] = $data;
+                return;
+            }
+        }
+
+        EntityManager::$drops[$name][] = [
+            $item->getId(),
+            $item->getDamage(),
+            "$minCount,$maxCount",
+        ];
+    }
+
+    /**
+     * @param string $name
+     * @param Item $item
+     */
+    public static function removeEntityDropItem($name, Item $item){
+        $list = EntityManager::$drops[$name] ?? [];
+
+        foreach($list as $key => $data){
+            if(($data[0] ?? 0) == $item->getId() && ($data[1] ?? 0) == $item->getDamage()){
+                unset(EntityManager::$drops[$name][$key]);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param string $name
+     */
+    public static function resetEntityDropItem($name){
+        unset(EntityManager::$drops[$name]);
     }
 
     public function onEnable(){
@@ -111,11 +113,6 @@ class EntityManager extends PluginBase implements Listener{
         self::$data = $this->getConfig()->getAll();
         self::$drops = (new Config($this->getDataFolder() . "drops.yml", Config::YAML))->getAll();
 
-        if(isset(self::$data["entity"]["explode"])){
-            self::$data["entity"]["explodeMode"] = "none";
-            unset(self::$data["entity"]["explode"]);
-        }
-
         /*Drops Example
         Zombie:
           #id  meta count
@@ -125,9 +122,6 @@ class EntityManager extends PluginBase implements Listener{
           [266, 0, "0,8"]
         */
 
-        if($this->getData("autospawn.turn-on", true)){
-            $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoSpawnTask($this), $this->getData("autospawn.tick", 100));
-        }
         if($this->getData("autoclear.turn-on", true)){
             $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoClearTask($this), $this->getData("autoclear.tick", $this->getData("autoclear.tick", 6000)));
         }
@@ -137,19 +131,11 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function onDisable(){
-        $this->getServer()->getLogger()->info(TextFormat::GOLD . "[EntityManager]Plugin has been disable");
-    }
+        $conf = new Config($this->getDataFolder() . "drops.yml", Config::YAML);
+        $conf->setAll(EntityManager::$drops);
+        $conf->save();
 
-    public static function clear(array $type = [BaseEntity::class], Level $level = null){
-        $level = $level === null ? Server::getInstance()->getDefaultLevel() : $level;
-        foreach($level->getEntities() as $id => $ent){
-            foreach($type as $t){
-                if(is_a($ent, $t, true)){
-                    $ent->close();
-                    continue;
-                }
-            }
-        }
+        $this->getServer()->getLogger()->info(TextFormat::GOLD . "[EntityManager]Plugin has been disable");
     }
 
     public function getData(string $key, $defaultValue){
@@ -170,6 +156,13 @@ class EntityManager extends PluginBase implements Listener{
         return $base;
     }
 
+    public function onEntitySpawnEvent(EntitySpawnEvent $ev){
+        $list = $this->getData("entity.not-spawn", []);
+        if(in_array((new \ReflectionClass(get_class($ev->getEntity())))->getShortName(), $list)){
+            $ev->getEntity()->close();
+        }
+    }
+
     public function ExplosionPrimeEvent(ExplosionPrimeEvent $ev){
         switch($this->getData("entity.explodeMode", "none")){
             case "onlyEntity":
@@ -178,6 +171,9 @@ class EntityManager extends PluginBase implements Listener{
             case "none":
                 $ev->setForce(0);
                 $ev->setBlockBreaking(false);
+                break;
+            case "cancelled":
+                $ev->setCancelled();
                 break;
         }
     }
@@ -290,7 +286,7 @@ class EntityManager extends PluginBase implements Listener{
 
                 $entity = PureEntities::create($sub[0], $pos);
                 if($entity == null){
-                    $output .= "An error occurred while summoning entity";
+                    $output .= "Entity's name is incorrect";
                     break;
                 }
                 $entity->spawnToAll();
