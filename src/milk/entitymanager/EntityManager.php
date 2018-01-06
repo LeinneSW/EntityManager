@@ -3,7 +3,7 @@
 namespace milk\entitymanager;
 
 use milk\entitymanager\task\AutoClearTask;
-use milk\pureentities\entity\BaseEntity;
+use milk\pureentities\entity\EntityBase;
 use milk\pureentities\PureEntities;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
@@ -199,8 +199,8 @@ class EntityManager extends PluginBase implements Listener{
         $ev->setDrops($drops);
     }
 
-    public function onCommand(CommandSender $i, Command $cmd, $label, array $sub){
-        $output = "[EntityManager]";
+    public function onCommand(CommandSender $i, Command string $cmd, $label, array $sub): bool{
+        $output = "§b§o[ EntityManager ] §7";
         switch(array_shift($sub)){
             case "remove":
                 if(!$i->hasPermission("entitymanager.command.remove")){
