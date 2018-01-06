@@ -30,8 +30,8 @@ autoclear:
   
 ## Commands
 | Command | Permission | Description |
-| ----- | :---------: | :----------: |
-| `/entitymanager <check/remove/spawn>` | `entitymanager.command` | None |
+| ----- | :-----: | ----- |
+| `/entitymanager <check/remove/spawn>` | `entitymanager.command` |  |
 | `/entitymanager check <LevelName>`| `entitymanager.command.check` | Check the number of entities(If blank, it is set as a default Level)|
 | `/entitymanager remove <LevelName>`| `entitymanager.command.remove` | Remove all entities in Level(If blank, it is set as a default Level) |
 | `/entitymanager spawn type <x y z Level>` | `entitymanager.command.spawn`| If blank, it is set as a Sender's Position|
