@@ -1,14 +1,17 @@
 # EntityManager
   
-Author: **[Leinne](https://github.com/Leinne)**  
+Development: **[Leinne](https://github.com/Leinne)** (before milk0417)
+  
+EntityManager is a plugin for managing entities(Mob, Animal).  
+
+## Start developing again!
+I decided to **start development again**.  
+I want lots of **issues** and **interests**.
   
 ## Notice
 
 ### Supported Server software
 [PocketMine-MP](https://pmmp.io/)
-
-### Plugin Description
-EntityManager is a plugin for managing entities(Mob, Animal), literally.  
 
 ### Dependency
 This plug-in requires [PureEntities](https://github.com/LeinneSW/PureEntities) that support Entity
@@ -28,7 +31,7 @@ autoclear:
 ## Commands
 | Command | Permission | Description |
 | ----- | :---------: | :----------: |
-| `/entitymanager (check|remove|spawn)` | `entitymanager.command` | None |
+| `/entitymanager <check/remove/spawn>` | `entitymanager.command` | None |
 | `/entitymanager check <LevelName>`| `entitymanager.command.check` | Check the number of entities(If blank, it is set as a default Level)|
 | `/entitymanager remove <LevelName>`| `entitymanager.command.remove` | Remove all entities in Level(If blank, it is set as a default Level) |
 | `/entitymanager spawn type <x y z Level>` | `entitymanager.command.spawn`| If blank, it is set as a Sender's Position|
