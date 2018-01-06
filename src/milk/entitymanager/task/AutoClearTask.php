@@ -8,7 +8,7 @@ use pocketmine\Server;
 
 class AutoClearTask extends PluginTask{
 
-    public function onRun($currentTick){
+    public function onRun(int $currentTick){
         /** @var EntityManager $owner */
         $owner = Server::getInstance()->getPluginManager()->getPlugin("EntityManager");
         $list = $owner->getData("autoclear.entities", ["Projectile", "DroppedItem"]);
