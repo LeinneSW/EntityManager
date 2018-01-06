@@ -9,7 +9,7 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\Human;
 use pocketmine\entity\Living;
-use pocketmine\entity\Projectile;
+use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\entity\ExplosionPrimeEvent;
@@ -30,7 +30,7 @@ class EntityManager extends PluginBase implements Listener{
     public static $drops;
     public static $spawner;
 
-    public static function clear(array $type = [BaseEntity::class], $level = null){
+    public static function clear(array $type = [EntityBase::class], $level = null){
         if($level === null){
             $level = Server::getInstance()->getDefaultLevel();
         }
@@ -138,7 +138,7 @@ class EntityManager extends PluginBase implements Listener{
         $this->getServer()->getLogger()->info(TextFormat::GOLD . "[EntityManager]Plugin has been disable");
     }
 
-    public function getData(string $key, $defaultValue){
+    public static function getData(string $key, $defaultValue){
         $vars = explode(".", $key);
         $base = array_shift($vars);
         if(!isset(self::$data[$base])){
@@ -199,8 +199,8 @@ class EntityManager extends PluginBase implements Listener{
         $ev->setDrops($drops);
     }
 
-    public function onCommand(CommandSender $i, Command string $cmd, $label, array $sub): bool{
-        $output = "§b§o[ EntityManager ] §7";
+    public function onCommand(CommandSender $i, Command $cmd, string $label, array $sub) : bool{
+        $output = "§b§o[EntityManager]§7";
         switch(array_shift($sub)){
             case "remove":
                 if(!$i->hasPermission("entitymanager.command.remove")){
@@ -214,7 +214,7 @@ class EntityManager extends PluginBase implements Listener{
                     $level = $i instanceof Player ? $i->getLevel() : null;
                 }
 
-                self::clear([BaseEntity::class, Projectile::class, ItemEntity::class], $level);
+                self::clear([EntityBase::class, Projectile::class, ItemEntity::class], $level);
                 $output .= "All spawned entities were removed";
                 break;
             case "check":
@@ -286,7 +286,7 @@ class EntityManager extends PluginBase implements Listener{
 
                 $entity = PureEntities::create($sub[0], $pos);
                 if($entity === null){
-                    $output .= "Entity's name is incorrect";
+                    $output .= "Entity name is incorrect";
                     break;
                 }
                 $entity->spawnToAll();

@@ -25,7 +25,8 @@ entity:
 autoclear:
   turn-on: true #Turn on / off automatic removal of entities
   tick: 6000 #Entity removal period(20 = 1second)
-  entities: [Projectile, DroppedItem] #List of entities to remove
+  levels: [] #If blank, it is set as all Levels
+  entities: ["Projectile", "Item"] #List of entities to remove
 ```
   
 ## Commands
@@ -34,4 +35,4 @@ autoclear:
 | `/entitymanager <check/remove/spawn>` | `entitymanager.command` |  |
 | `/entitymanager check <LevelName>`| `entitymanager.command.check` | Check the number of entities(If blank, it is set as a default Level)|
 | `/entitymanager remove <LevelName>`| `entitymanager.command.remove` | Remove all entities in Level(If blank, it is set as a default Level) |
-| `/entitymanager spawn type <x y z Level>` | `entitymanager.command.spawn`| If blank, it is set as a Sender's Position|
+| `/entitymanager spawn type <x y z Level>` | `entitymanager.command.spawn`| If blank, it is set as a sender's Position|
