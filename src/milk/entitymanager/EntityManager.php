@@ -28,9 +28,8 @@ class EntityManager extends PluginBase implements Listener{
 
     public static $data;
     public static $drops;
-    public static $spawner;
 
-    public static function clear(array $type = [EntityBase::class], $level = null){
+    public static function clear(array $type = [ItemEntity::class, Projectile::class], $level = null){
         if($level === null){
             $level = Server::getInstance()->getDefaultLevel();
         }
@@ -46,7 +45,7 @@ class EntityManager extends PluginBase implements Listener{
             foreach($type as $t){
                 if(is_a($ent, $t, true)){
                     $ent->close();
-                    continue;
+                    break;
                 }
             }
         }
@@ -101,29 +100,20 @@ class EntityManager extends PluginBase implements Listener{
 
     public function onEnable(){
         $this->saveDefaultConfig();
-        if($this->getConfig()->exists("spawn")){
-            $this->saveResource("config.yml", true);
-            $this->reloadConfig();
-            $this->getServer()->getLogger()->info(TextFormat::GOLD . "[EntityManager]Your config has been updated. Please check \"config.yml\" file and restart the server.");
-        }elseif($this->getConfig()->exists("spawner")){
-            $this->getConfig()->remove("spawner");
-            $this->getConfig()->save();
-        }
-
         self::$data = $this->getConfig()->getAll();
-        self::$drops = (new Config($this->getDataFolder() . "drops.yml", Config::YAML))->getAll();
+        self::$drops = (new Config(self::getDataFolder() . "drops.yml", Config::YAML))->getAll();
 
         /*Drops Example
         Zombie:
-          #id  meta count
+          #id, data, count
           [288, 0, "1,10"],
           [392, 0, "1,10"]
         PigZombie:
           [266, 0, "0,8"]
         */
 
-        if($this->getData("autoclear.turn-on", true)){
-            $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoClearTask($this), $this->getData("autoclear.tick", $this->getData("autoclear.tick", 6000)));
+        if(self::getData("autoclear.turn-on", true)){
+            $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoClearTask($this), self::getData("autoclear.tick", self::getData("autoclear.tick", 6000)));
         }
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -131,7 +121,7 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function onDisable(){
-        $conf = new Config($this->getDataFolder() . "drops.yml", Config::YAML);
+        $conf = new Config(self::getDataFolder() . "drops.yml", Config::YAML);
         $conf->setAll(EntityManager::$drops);
         $conf->save();
 
@@ -157,14 +147,14 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function onEntitySpawnEvent(EntitySpawnEvent $ev){
-        $list = $this->getData("entity.not-spawn", []);
+        $list = self::getData("entity.not-spawn", []);
         if(in_array((new \ReflectionClass(get_class($ev->getEntity())))->getShortName(), $list)){
             $ev->getEntity()->close();
         }
     }
 
     public function ExplosionPrimeEvent(ExplosionPrimeEvent $ev){
-        switch($this->getData("entity.explodeMode", "none")){
+        switch(self::getData("entity.explodeMode", "none")){
             case "onlyEntity":
                 $ev->setBlockBreaking(false);
                 break;

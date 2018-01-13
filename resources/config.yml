@@ -5,4 +5,4 @@ autoclear:
   turn-on: true
   tick: 6000
   levels: [] #If blank, it is set as all Levels
-  entities: ["Projectile", "ItemEntity"]
+  entities: ["Projectile", "Item"]
