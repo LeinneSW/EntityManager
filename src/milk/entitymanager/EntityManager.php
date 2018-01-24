@@ -3,10 +3,10 @@
 namespace milk\entitymanager;
 
 use milk\entitymanager\task\AutoClearTask;
-use milk\pureentities\entity\EntityBase;
-use milk\pureentities\PureEntities;
+
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Living;
 use pocketmine\entity\projectile\Projectile;
@@ -29,22 +29,27 @@ class EntityManager extends PluginBase implements Listener{
     public static $data;
     public static $drops;
 
-    public static function clear(array $type = [ItemEntity::class, Projectile::class], $level = null){
-        if($level === null){
+    public static function clear($type = ['Item', 'Projectile'], $level = \null){
+        if($level === \null){
             $level = Server::getInstance()->getDefaultLevel();
         }
 
         if(!($level instanceof Level)){
             $level = Server::getInstance()->getLevelByName($level);
-            if($level === null){
+            if($level === \null){
                 return;
             }
         }
 
-        foreach($level->getEntities() as $id => $ent){
-            foreach($type as $t){
-                if(is_a($ent, $t, true)){
-                    $ent->close();
+        foreach($level->getEntities() as $entity){
+            $reflect = new \ReflectionClass(\get_class($entity));
+            while(\true){
+                if(in_array($reflect->getShortName(), $type)){
+                    $entity->close();
+                    break;
+                }
+
+                if(($reflect = $reflect->getParentClass()) === \false){
                     break;
                 }
             }
@@ -72,7 +77,8 @@ class EntityManager extends PluginBase implements Listener{
         EntityManager::$drops[$name][] = [
             $item->getId(),
             $item->getDamage(),
-            "$minCount,$maxCount",
+            $minCount,
+            $maxCount,
         ];
     }
 
@@ -106,13 +112,13 @@ class EntityManager extends PluginBase implements Listener{
         /*Drops Example
         Zombie:
           #id, data, count
-          [288, 0, "1,10"],
-          [392, 0, "1,10"]
+          [288, 0, 1, 10],
+          [392, 0, 1, 10]
         PigZombie:
-          [266, 0, "0,8"]
+          [266, 0, 0 ,8]
         */
 
-        if(self::getData("autoclear.turn-on", true)){
+        if(self::getData("autoclear.turn-on", \true)){
             $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoClearTask($this), self::getData("autoclear.tick", self::getData("autoclear.tick", 6000)));
         }
 
@@ -148,8 +154,17 @@ class EntityManager extends PluginBase implements Listener{
 
     public function onEntitySpawnEvent(EntitySpawnEvent $ev){
         $list = self::getData("entity.not-spawn", []);
-        if(in_array((new \ReflectionClass(get_class($ev->getEntity())))->getShortName(), $list)){
-            $ev->getEntity()->close();
+
+        $reflect = new \ReflectionClass(\get_class($entity = $ev->getEntity()));
+        while(\true){
+            if(in_array($reflect->getShortName(), $list)){
+                $entity->close();
+                break;
+            }
+
+            if(($reflect = $reflect->getParentClass()) === \false){
+                break;
+            }
         }
     }
 
@@ -159,7 +174,7 @@ class EntityManager extends PluginBase implements Listener{
                 $ev->setBlockBreaking(false);
                 break;
             case "none":
-                $ev->setForce(0);
+                $ev->setForce(0.00001);
                 $ev->setBlockBreaking(false);
                 break;
             case "cancelled":
@@ -181,10 +196,8 @@ class EntityManager extends PluginBase implements Listener{
                 continue;
             }
 
-            $count = explode(",", $data[2]);
-            $item = Item::get($data[0], $data[1]);
-            $item->setCount(max(mt_rand(...$count), 0));
-            $drops[] = $item;
+            $item = Item::get($data[0] ?? 0, $data[1] ?? 0);
+            if(!$item->setCount(max(mt_rand($data[2] ?? 0, $data[3] ?? 1), 0))->isNull()) $drops[] = $item;
         }
         $ev->setDrops($drops);
     }
@@ -204,7 +217,7 @@ class EntityManager extends PluginBase implements Listener{
                     $level = $i instanceof Player ? $i->getLevel() : null;
                 }
 
-                self::clear([EntityBase::class, Projectile::class, ItemEntity::class], $level);
+                self::clear(['BaseEntity', 'EntityBase', 'Item', 'Projectile'], $level);
                 $output .= "All spawned entities were removed";
                 break;
             case "check":
@@ -251,12 +264,12 @@ class EntityManager extends PluginBase implements Listener{
                     return true;
                 }
 
-                if(!isset($sub[0]) or (!is_numeric($sub[0]) and gettype($sub[0]) !== "string")){
+                if(!isset($sub[0]) or (!\is_numeric($sub[0]) and \gettype($sub[0]) !== "string")){
                     $output .= "Entity's name is incorrect";
                     break;
                 }
 
-                $pos = null;
+                $pos = \null;
                 if(count($sub) >= 4){
                     $level = $this->getServer()->getDefaultLevel();
                     if(isset($sub[4]) && ($k = $this->getServer()->getLevelByName($sub[4]))){
@@ -269,13 +282,13 @@ class EntityManager extends PluginBase implements Listener{
                     $pos = $i->getPosition();
                 }
 
-                if($pos === null){
+                if($pos === \null){
                     $output .= "usage: /$label create <id/name> (x) (y) (z) (level)";
                     break;
                 }
 
-                $entity = PureEntities::create($sub[0], $pos);
-                if($entity === null){
+                $entity = Entity::createEntity($sub[0], $pos->level, Entity::createBaseNBT($pos));
+                if($entity === \null){
                     $output .= "Entity name is incorrect";
                     break;
                 }
