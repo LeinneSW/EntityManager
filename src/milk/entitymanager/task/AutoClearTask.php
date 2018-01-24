@@ -27,8 +27,8 @@ class AutoClearTask extends PluginTask{
                         $entity->close();
                         break;
                     }
-                    
-                    if(($reflect = $reflect->getParentClass()) === \false){
+
+                    if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
                         break;
                     }
                 }

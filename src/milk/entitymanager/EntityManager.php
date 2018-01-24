@@ -49,7 +49,7 @@ class EntityManager extends PluginBase implements Listener{
                     break;
                 }
 
-                if(($reflect = $reflect->getParentClass()) === \false){
+                if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
                     break;
                 }
             }
@@ -162,7 +162,7 @@ class EntityManager extends PluginBase implements Listener{
                 break;
             }
 
-            if(($reflect = $reflect->getParentClass()) === \false){
+            if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
                 break;
             }
         }
