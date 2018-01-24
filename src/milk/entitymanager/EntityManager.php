@@ -42,6 +42,8 @@ class EntityManager extends PluginBase implements Listener{
         }
 
         foreach($level->getEntities() as $entity){
+            if($entity instanceof Player) continue;
+
             $reflect = new \ReflectionClass(\get_class($entity));
             while(\true){
                 if(in_array($reflect->getShortName(), $type)){
@@ -49,7 +51,7 @@ class EntityManager extends PluginBase implements Listener{
                     break;
                 }
 
-                if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
+                if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
                     break;
                 }
             }
@@ -153,16 +155,18 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function onEntitySpawnEvent(EntitySpawnEvent $ev){
+        if(($entity = $ev->getEntity()) instanceof Player) return;
+
         $list = self::getData("entity.not-spawn", []);
 
-        $reflect = new \ReflectionClass(\get_class($entity = $ev->getEntity()));
+        $reflect = new \ReflectionClass(\get_class($entity));
         while(\true){
             if(in_array($reflect->getShortName(), $list)){
                 $entity->close();
                 break;
             }
 
-            if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
+            if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
                 break;
             }
         }
@@ -217,7 +221,7 @@ class EntityManager extends PluginBase implements Listener{
                     $level = $i instanceof Player ? $i->getLevel() : null;
                 }
 
-                self::clear(['BaseEntity', 'EntityBase', 'Item', 'Projectile'], $level);
+                self::clear(self::getData('command.remove', ['Projectile', 'Item']), $level);
                 $output .= "All spawned entities were removed";
                 break;
             case "check":

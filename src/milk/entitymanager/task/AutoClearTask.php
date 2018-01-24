@@ -3,6 +3,7 @@
 namespace milk\entitymanager\task;
 
 use milk\entitymanager\EntityManager;
+use pocketmine\Player;
 use pocketmine\scheduler\PluginTask;
 use pocketmine\Server;
 
@@ -21,6 +22,8 @@ class AutoClearTask extends PluginTask{
         $list = EntityManager::getData('autoclear.entities', ['Projectile', 'Item']);
         foreach((count($levelList) > 0 ? $levelList : Server::getInstance()->getLevels()) as $level){
             foreach($level->getEntities() as $entity){
+                if($entity instanceof Player) return;
+
                 $reflect = new \ReflectionClass(\get_class($entity));
                 while(\true){
                     if(in_array($reflect->getShortName(), $list)){
@@ -28,7 +31,7 @@ class AutoClearTask extends PluginTask{
                         break;
                     }
 
-                    if(($reflect = $reflect->getParentClass()) === \false || $reflect->getShortName() === 'Entity'){
+                    if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
                         break;
                     }
                 }
