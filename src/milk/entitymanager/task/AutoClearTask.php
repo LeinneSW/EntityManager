@@ -27,7 +27,7 @@ class AutoClearTask extends PluginTask{
                 $reflect = new \ReflectionClass(\get_class($entity));
                 while(\true){
                     if(in_array($reflect->getShortName(), $list)){
-                        $entity->close();
+                        $entity->flagForDespawn();
                         break;
                     }
 

@@ -47,7 +47,7 @@ class EntityManager extends PluginBase implements Listener{
             $reflect = new \ReflectionClass(\get_class($entity));
             while(\true){
                 if(in_array($reflect->getShortName(), $type)){
-                    $entity->close();
+                    $entity->flagForDespawn();
                     break;
                 }
 
@@ -162,7 +162,7 @@ class EntityManager extends PluginBase implements Listener{
         $reflect = new \ReflectionClass(\get_class($entity));
         while(\true){
             if(in_array($reflect->getShortName(), $list)){
-                $entity->close();
+                $entity->flagForDespawn();
                 break;
             }
 
