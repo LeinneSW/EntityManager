@@ -296,6 +296,7 @@ class EntityManager extends PluginBase implements Listener{
                     $output .= "Entity name is incorrect";
                     break;
                 }
+                $output .= "Successfully created";
                 $entity->spawnToAll();
                 break;
             default:
