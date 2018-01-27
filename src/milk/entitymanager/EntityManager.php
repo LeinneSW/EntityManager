@@ -188,7 +188,7 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public function EntityDeathEvent(EntityDeathEvent $ev){
-        $reflect = new \ReflectionClass(get_class($ev->getEntity()));
+        $reflect = new \ReflectionClass(\get_class($ev->getEntity()));
         if(!isset(self::$drops[$reflect->getShortName()])){
             return;
         }
@@ -201,14 +201,14 @@ class EntityManager extends PluginBase implements Listener{
             }
 
             $item = Item::get($data[0] ?? 0, $data[1] ?? 0);
-            if(!$item->setCount(max(mt_rand($data[2] ?? 0, $data[3] ?? 1), 0))->isNull()) $drops[] = $item;
+            if(!$item->setCount(\max(\mt_rand($data[2] ?? 0, $data[3] ?? 1), 0))->isNull()) $drops[] = $item;
         }
         $ev->setDrops($drops);
     }
 
     public function onCommand(CommandSender $i, Command $cmd, string $label, array $sub) : bool{
         $output = "§b§o[EntityManager]§7";
-        switch(array_shift($sub)){
+        switch(\array_shift($sub)){
             case "remove":
                 if(!$i->hasPermission("entitymanager.command.remove")){
                     $i->sendMessage(TextFormat::RED . "You do not have permission to use this command");
@@ -274,7 +274,7 @@ class EntityManager extends PluginBase implements Listener{
                 }
 
                 $pos = \null;
-                if(count($sub) >= 4){
+                if(\count($sub) >= 4){
                     $level = $this->getServer()->getDefaultLevel();
                     if(isset($sub[4]) && ($k = $this->getServer()->getLevelByName($sub[4]))){
                         $level = $k;

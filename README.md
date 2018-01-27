@@ -3,18 +3,15 @@
 Development: **[Leinne](https://github.com/Leinne)** (before milk0417)
   
 EntityManager is a plugin for managing entities(Mob, Animal).  
-
-## Start developing again!
-I decided to **start development again**.  
-I want lots of **issues** and **interests**.
   
 ## Notice
 
+### Start developing again!
+I decided to **start development again**.  
+I want lots of **issues** and **interests**.
+
 ### Supported Server software
 [PocketMine-MP](https://pmmp.io/)
-
-### Dependency
-This plug-in requires [PureEntities](https://github.com/LeinneSW/PureEntities) that support Entity
   
 ## YAML data
   * config.yml
@@ -27,6 +24,8 @@ autoclear:
   tick: 6000 #Entity removal period(20 = 1second)
   levels: [] #If blank, it is set as all Levels
   entities: ["Projectile", "Item"] #List of entities to remove
+command:
+  remove: ["Projectile", "Item"]
 ```
   
 ## Commands
