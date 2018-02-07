@@ -29,6 +29,26 @@ class EntityManager extends PluginBase implements Listener{
     public static $data;
     public static $drops;
 
+    public static function closeEntityByClassName($type = ['Item', 'Projectile'], Entity $entity){
+        if($entity instanceof Player) return;
+
+        if(!\is_array($type)){
+            $type = [$type];
+        }
+
+        $reflect = new \ReflectionClass(\get_class($entity));
+        while(\true){
+            if(\in_array($reflect->getShortName(), $type)){
+                $entity->flagForDespawn();
+                break;
+            }
+
+            if($reflect->getShortName() === 'Entity'){
+                break;
+            }
+        }
+    }
+
     public static function clear($type = ['Item', 'Projectile'], $level = \null){
         if($level === \null){
             $level = Server::getInstance()->getDefaultLevel();
@@ -41,21 +61,7 @@ class EntityManager extends PluginBase implements Listener{
             }
         }
 
-        foreach($level->getEntities() as $entity){
-            if($entity instanceof Player) continue;
-
-            $reflect = new \ReflectionClass(\get_class($entity));
-            while(\true){
-                if(in_array($reflect->getShortName(), $type)){
-                    $entity->flagForDespawn();
-                    break;
-                }
-
-                if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
-                    break;
-                }
-            }
-        }
+        foreach($level->getEntities() as $entity) self::closeEntityByClassName($type, $entity);
     }
 
     /**

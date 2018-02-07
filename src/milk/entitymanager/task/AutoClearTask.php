@@ -19,22 +19,10 @@ class AutoClearTask extends PluginTask{
             }
         }
 
-        $list = EntityManager::getData('autoclear.entities', ['Projectile', 'Item']);
+        $type = EntityManager::getData('autoclear.entities', ['Projectile', 'Item']);
         foreach((count($levelList) > 0 ? $levelList : Server::getInstance()->getLevels()) as $level){
             foreach($level->getEntities() as $entity){
-                if($entity instanceof Player) return;
-
-                $reflect = new \ReflectionClass(\get_class($entity));
-                while(\true){
-                    if(in_array($reflect->getShortName(), $list)){
-                        $entity->flagForDespawn();
-                        break;
-                    }
-
-                    if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
-                        break;
-                    }
-                }
+                EntityManager::closeEntityByClassName($type, $entity);
             }
         }
     }
