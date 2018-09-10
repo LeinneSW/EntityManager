@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace milk\entitymanager;
 
 use milk\entitymanager\task\AutoClearTask;
@@ -9,6 +11,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Living;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntitySpawnEvent;
@@ -22,55 +25,39 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
-use pocketmine\entity\Item as ItemEntity;
 
 class EntityManager extends PluginBase implements Listener{
 
     public static $data;
     public static $drops;
 
-    public static function closeEntityByClassName($type = ['Item', 'Projectile'], Entity $entity){
-        if($entity instanceof Player) return;
-
-        if(!\is_array($type)){
-            $type = [$type];
+    public static function despawnEntityByClass(array $type = ['Item', 'Projectile'], Entity $entity) : bool{
+        if($entity instanceof Player){
+            return \false;
         }
 
         $reflect = new \ReflectionClass(\get_class($entity));
         while(\true){
             if(\in_array($reflect->getShortName(), $type)){
                 $entity->flagForDespawn();
-                break;
+                return \true;
             }
 
-            if($reflect->getShortName() === 'Entity'){
-                break;
+            if($reflect->getShortName() === 'Entity' || ($reflect = $reflect->getParentClass()) === \false){
+                return \false;
             }
         }
     }
 
-    public static function clear($type = ['Item', 'Projectile'], $level = \null){
+    public static function clear(array $type = ['Item', 'Projectile'], ?Level $level = \null) : void{
         if($level === \null){
             $level = Server::getInstance()->getDefaultLevel();
         }
 
-        if(!($level instanceof Level)){
-            $level = Server::getInstance()->getLevelByName($level);
-            if($level === \null){
-                return;
-            }
-        }
-
-        foreach($level->getEntities() as $entity) self::closeEntityByClassName($type, $entity);
+        foreach(($entities = $level->getEntities()) as $entity) self::despawnEntityByClass($type, $entity);
     }
 
-    /**
-     * @param string $name
-     * @param Item $item
-     * @param int $minCount
-     * @param int $maxCount
-     */
-    public static function addEntityDropItem($name, Item $item, $minCount, $maxCount){
+    public static function addEntityDropItem(string $name, Item $item, int $minCount, int $maxCount) : void{
         $list = EntityManager::$drops[$name] ?? [];
 
         foreach($list as $key => $data){
@@ -90,11 +77,7 @@ class EntityManager extends PluginBase implements Listener{
         ];
     }
 
-    /**
-     * @param string $name
-     * @param Item $item
-     */
-    public static function removeEntityDropItem($name, Item $item){
+    public static function removeEntityDropItem(string $name, Item $item) : void{
         $list = EntityManager::$drops[$name] ?? [];
 
         foreach($list as $key => $data){
@@ -105,14 +88,11 @@ class EntityManager extends PluginBase implements Listener{
         }
     }
 
-    /**
-     * @param string $name
-     */
-    public static function resetEntityDropItem($name){
+    public static function resetEntityDropItem(string $name) : void{
         unset(EntityManager::$drops[$name]);
     }
 
-    public function onEnable(){
+    public function onEnable() : void{
         $this->saveDefaultConfig();
         self::$data = $this->getConfig()->getAll();
         self::$drops = (new Config(self::getDataFolder() . "drops.yml", Config::YAML))->getAll();
@@ -127,14 +107,14 @@ class EntityManager extends PluginBase implements Listener{
         */
 
         if(self::getData("autoclear.turn-on", \true)){
-            $this->getServer()->getScheduler()->scheduleRepeatingTask(new AutoClearTask($this), self::getData("autoclear.tick", self::getData("autoclear.tick", 6000)));
+            $this->getScheduler()->scheduleRepeatingTask(new AutoClearTask(), self::getData("autoclear.tick", self::getData("autoclear.tick", 6000)));
         }
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getLogger()->info(TextFormat::GOLD . "[EntityManager]Plugin has been enabled");
     }
 
-    public function onDisable(){
+    public function onDisable() : void{
         $conf = new Config(self::getDataFolder() . "drops.yml", Config::YAML);
         $conf->setAll(EntityManager::$drops);
         $conf->save();
@@ -160,7 +140,7 @@ class EntityManager extends PluginBase implements Listener{
         return $base;
     }
 
-    public function onEntitySpawnEvent(EntitySpawnEvent $ev){
+    public function onEntitySpawnEvent(EntitySpawnEvent $ev) : void{
         if(($entity = $ev->getEntity()) instanceof Player) return;
 
         $list = self::getData("entity.not-spawn", []);
@@ -178,7 +158,7 @@ class EntityManager extends PluginBase implements Listener{
         }
     }
 
-    public function ExplosionPrimeEvent(ExplosionPrimeEvent $ev){
+    public function onExplosionPrimeEvent(ExplosionPrimeEvent $ev) : void{
         switch(self::getData("entity.explodeMode", "none")){
             case "onlyEntity":
                 $ev->setBlockBreaking(false);
@@ -193,7 +173,7 @@ class EntityManager extends PluginBase implements Listener{
         }
     }
 
-    public function EntityDeathEvent(EntityDeathEvent $ev){
+    public function EntityDeathEvent(EntityDeathEvent $ev) : void{
         $reflect = new \ReflectionClass(\get_class($ev->getEntity()));
         if(!isset(self::$drops[$reflect->getShortName()])){
             return;
