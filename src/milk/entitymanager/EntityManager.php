@@ -58,11 +58,10 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public static function addEntityDropItem(string $name, Item $item, int $minCount, int $maxCount) : void{
-        $list = EntityManager::$drops[$name] ?? [];
-
-        foreach($list as $key => $data){
+        foreach((EntityManager::$drops[$name] ?? []) as $key => $data){
             if(($data[0] ?? 0) === $item->getId() && ($data[1] ?? 0) === $item->getDamage()){
-                $data[2] = "$minCount,$maxCount";
+                $data[2] = $minCount;
+                $data[3] = $maxCount;
 
                 EntityManager::$drops[$name][$key] = $data;
                 return;
@@ -78,9 +77,7 @@ class EntityManager extends PluginBase implements Listener{
     }
 
     public static function removeEntityDropItem(string $name, Item $item) : void{
-        $list = EntityManager::$drops[$name] ?? [];
-
-        foreach($list as $key => $data){
+        foreach((EntityManager::$drops[$name] ?? []) as $key => $data){
             if(($data[0] ?? 0) === $item->getId() && ($data[1] ?? 0) === $item->getDamage()){
                 unset(EntityManager::$drops[$name][$key]);
                 return;
