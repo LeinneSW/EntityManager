@@ -14,15 +14,15 @@ class AutoClearTask extends Task{
         $levelList = [];
         $levels = EntityManager::getData('autoclear.levels', []);
         if(count($levels) > 0){
-            foreach($levels as $levelname){
+            foreach($levels as $k => $levelname){
                 $level = Server::getInstance()->getLevelByName($levelname);
                 if($level !== null) $levelList[] = $level;
             }
         }
 
         $type = EntityManager::getData('autoclear.entities', ['Projectile', 'Item']);
-        foreach((count($levelList) > 0 ? $levelList : Server::getInstance()->getLevels()) as $level){
-            foreach($level->getEntities() as $entity){
+        foreach((\count($levelList) > 0 ? $levelList : Server::getInstance()->getLevels()) as $k => $level){
+            foreach($level->getEntities() as $id => $entity){
                 EntityManager::despawnEntityByClass($type, $entity);
             }
         }
