@@ -9,6 +9,7 @@ use milk\entitymanager\task\AutoClearTask;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\Entity;
+use pocketmine\entity\EntityFactory;
 use pocketmine\entity\Human;
 use pocketmine\entity\Living;
 use pocketmine\entity\object\ItemEntity;
@@ -274,7 +275,9 @@ class EntityManager extends PluginBase implements Listener{
                     break;
                 }
 
-                $entity = Entity::createEntity($sub[0], $pos->level, Entity::createBaseNBT($pos));
+                $nbt = EntityFactory::createBaseNBT($pos);
+                $nbt->setString("id", $sub[0]);
+                $entity = EntityFactory::createFromData($pos->level, $nbt);
                 if($entity === \null){
                     $output .= "Entity name is incorrect";
                     break;
